@@ -1,20 +1,21 @@
+using System.Collections;
 using UnityEngine;
 
 public abstract class ManagerBase : MonoBehaviour
 {
     GameManager _connectedManager;
 
-    public void Connect(GameManager newManager)
+    public IEnumerator Connect(GameManager newManager)
     {
-        if (_connectedManager != null) DisConnected();
+        if (_connectedManager != null) DisConnect();
         _connectedManager = newManager;
-        OnConnected(newManager);
+        yield return OnConnected(newManager);
     }
-    protected void DisConnected()
+    protected void DisConnect()
     {
         _connectedManager = null;
         OnDisconnected();
     }
-    protected abstract void OnConnected(GameManager newManager);
+    protected abstract IEnumerator OnConnected(GameManager newManager);
     protected abstract void OnDisconnected();
 }

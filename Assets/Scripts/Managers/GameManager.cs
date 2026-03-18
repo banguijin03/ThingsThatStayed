@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -29,6 +30,8 @@ public class GameManager : MonoBehaviour
     InputManager _input;
     public InputManager Input => _input;
 
+    IEnumerator initializing;
+
     void Awake()
     {
         if (Instance == null)
@@ -38,19 +41,27 @@ public class GameManager : MonoBehaviour
         else
         {
             Destroy(this);
+            return;
         }
+        initializing = InitializeManagers();
+
+        StartCoroutine(initializing);
     }
 
-    void InitializeManagers()
+    void OnDestroy()
     {
-        CreateManager(ref _ui);
-        CreateManager(ref _data);
-        CreateManager(ref _save);
-        CreateManager(ref _setting);
-        CreateManager(ref _language);
-        CreateManager(ref _audio);
-        CreateManager(ref _camera);
-        CreateManager(ref _input);
+        DeleteManagers();
+    }
+    IEnumerator InitializeManagers()
+    {
+        yield return CreateManager(ref _ui).Connect(this);         
+        yield return CreateManager(ref _data).Connect(this);
+        yield return CreateManager(ref _save).Connect(this);
+        yield return CreateManager(ref _setting).Connect(this);
+        yield return CreateManager(ref _language).Connect(this);
+        yield return CreateManager(ref _audio).Connect(this);
+        yield return CreateManager(ref _camera).Connect(this);
+        yield return CreateManager(ref _input).Connect(this);
         /* 노가다하면 이렇게됨
         if (_ui == null)
         {
@@ -94,12 +105,24 @@ public class GameManager : MonoBehaviour
         }*/
 
     }
-    ManagerType CreateManager<ManagerType/*WantType도 가능*/>(ref ManagerType targetVariable) where ManagerType:ManagerBase
+
+    void DeleteManagers()
     {
-        if (_input == null)
+        Input?.DisConnect();
+        Audio?.Disconnect();
+        Language?.Disconnect();
+        Setting?.Disconnect();
+        Save?.Disconnect();
+        Camera?.Disconnect();
+        UI.Disconnect();
+        Data?.Disconnect();
+    }
+
+    ManagerType CreateManager<ManagerType>(ref ManagerType targetVariable) where ManagerType:ManagerBase
+    {
+        if (targetVariable == null)
         {
-            targetVariable= gameObject.AddComponent<ManagerType>();
-            targetVariable.Connect(this);
+            targetVariable= this.TryAddComponent<ManagerType>();
         }
         return targetVariable;
     }
