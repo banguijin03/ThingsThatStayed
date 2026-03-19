@@ -50,18 +50,34 @@ public class GameManager : MonoBehaviour
 
     void OnDestroy()
     {
+        if (initializing != null) StopCoroutine(initializing);
         DeleteManagers();
     }
     IEnumerator InitializeManagers()
     {
-        yield return CreateManager(ref _ui).Connect(this);         
-        yield return CreateManager(ref _data).Connect(this);
-        yield return CreateManager(ref _save).Connect(this);
-        yield return CreateManager(ref _setting).Connect(this);
-        yield return CreateManager(ref _language).Connect(this);
-        yield return CreateManager(ref _audio).Connect(this);
-        yield return CreateManager(ref _camera).Connect(this);
-        yield return CreateManager(ref _input).Connect(this);
+        int totalLoadCount = 0;
+        totalLoadCount+=CreateManager(ref _ui).LoadCount;
+        totalLoadCount+=CreateManager(ref _data).LoadCount;
+        totalLoadCount+=CreateManager(ref _save).LoadCount;
+        totalLoadCount+=CreateManager(ref _setting).LoadCount;
+        totalLoadCount+=CreateManager(ref _language).LoadCount;
+        totalLoadCount+=CreateManager(ref _audio).LoadCount;
+        totalLoadCount+=CreateManager(ref _camera).LoadCount;
+        totalLoadCount+=CreateManager(ref _input).LoadCount;
+        
+
+        yield return CreateManager(ref _ui).Connect(this);
+        UIManager.ClaimOpenUI(UIType.Loading);
+        if(UIManager.ClaimOpenUI(UIType.Loading) is IProgress<int> loadingProgress) loadingProgress.Set(0, totalLoadCount);
+
+        yield return _data.Connect(this);
+        yield return _save.Connect(this);
+        yield return _setting.Connect(this);
+        yield return _language.Connect(this);
+        yield return _audio.Connect(this);
+        yield return _camera.Connect(this);
+        yield return _input.Connect(this);
+        UIManager.ClaimCloseUI(UIType.Loading);
         /* 노가다하면 이렇게됨
         if (_ui == null)
         {
@@ -108,7 +124,7 @@ public class GameManager : MonoBehaviour
 
     void DeleteManagers()
     {
-        Input?.DisConnect();
+        Input?.Disconnect();
         Audio?.Disconnect();
         Language?.Disconnect();
         Setting?.Disconnect();

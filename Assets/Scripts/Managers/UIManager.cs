@@ -17,13 +17,15 @@ public class UIManager : ManagerBase
     {
         _maincanvas = GetComponentInChildren<Canvas>();
         //GameObject.FindGameObjectWithTag("MainCanvas");
+        SetUI(UIType.Loading, GetComponentInChildren<UI_LoadingScreen>());
         yield return null;
     }
     protected override void OnDisconnected()
     {
 
     }
-    public UIBase SetUI(UIType wantType, UIBase wantUI)
+
+    protected UIBase SetUI(UIType wantType, UIBase wantUI)
     {
         if (wantUI == null) return null;
 
@@ -32,29 +34,36 @@ public class UIManager : ManagerBase
         uiDictionary.Add(wantType, wantUI);
         return wantUI; 
     }
-    public UIBase GetUI(UIType wantType)
+    public static UIBase ClaimSetUI(UIType wantType, UIBase wantUI)  =>GameManager.Instance?.UI?.SetUI(wantType, wantUI);
+
+    protected UIBase GetUI(UIType wantType)
     {
         if(uiDictionary.TryGetValue(wantType, out UIBase result)) return result;
         else return null;
     }
-    public UIBase OpenUI(UIType wantType)
+    public static UIBase ClaimGetUI(UIType wantType)    => GameManager.Instance?.UI?.GetUI(wantType);
+
+    protected UIBase OpenUI(UIType wantType)
     {
         UIBase result = GetUI(wantType);
         if (result is IOpenable asOpenable) asOpenable.Open();
         return result;
-    }      
-    public UIBase CloseUI(UIType wantType)
+    }
+    public static UIBase ClaimOpenUI(UIType wantType)   => GameManager.Instance?.UI?.OpenUI(wantType);
+
+    protected UIBase CloseUI(UIType wantType)
     {
         UIBase result = GetUI(wantType);
         if (result is IOpenable asOpenable) asOpenable.Close();
         return result;
-    }     
-    public UIBase ToggleUI(UIType wantType)
+    }
+    public static UIBase ClaimCloseUI(UIType wantType)  => GameManager.Instance?.UI?.CloseUI(wantType);
+
+    protected UIBase ToggleUI(UIType wantType)
     {
         UIBase result = GetUI(wantType);
         if (result is IOpenable asOpenable) asOpenable.Toggle();
         return result;
     }
-
-
+    public static UIBase ClaimToggleUI(UIType wantType) => GameManager.Instance?.UI?.ToggleUI(wantType);
 }
