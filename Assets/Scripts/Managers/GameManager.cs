@@ -67,16 +67,25 @@ public class GameManager : MonoBehaviour
         
 
         yield return CreateManager(ref _ui).Connect(this);
-        UIManager.ClaimOpenUI(UIType.Loading);
-        if(UIManager.ClaimOpenUI(UIType.Loading) is IProgress<int> loadingProgress) loadingProgress.Set(0, totalLoadCount);
+        UIBase loadingUI = UIManager.ClaimOpenUI(UIType.Loading);
+        IProgress<int> loadingProgress = loadingUI as IProgress<int>;
 
+        loadingProgress?.Set(0, totalLoadCount);
         yield return _data.Connect(this);
+        loadingProgress?.AddCurrent(1); 
         yield return _save.Connect(this);
+        loadingProgress?.AddCurrent(1); 
         yield return _setting.Connect(this);
+        loadingProgress?.AddCurrent(1); 
         yield return _language.Connect(this);
+        loadingProgress?.AddCurrent(1); 
         yield return _audio.Connect(this);
+        loadingProgress?.AddCurrent(1); 
         yield return _camera.Connect(this);
+        loadingProgress?.AddCurrent(1); 
         yield return _input.Connect(this);
+        loadingProgress?.AddCurrent(1);
+        yield return new WaitForSeconds(1.0f);
         UIManager.ClaimCloseUI(UIType.Loading);
         /* 노가다하면 이렇게됨
         if (_ui == null)

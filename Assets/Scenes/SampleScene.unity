@@ -822,7 +822,7 @@ GameObject:
   - component: {fileID: 1407987489}
   - component: {fileID: 1407987488}
   m_Layer: 5
-  m_Name: LoaingPercentText
+  m_Name: LoadingPercentText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1134,7 +1134,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3310177618608659729, guid: 7b9590758a4aaa84dbe867a1e555bf27, type: 3}
       propertyPath: m_Name
-      value: LoaingExplainText
+      value: LoadingExplainText
       objectReference: {fileID: 0}
     - target: {fileID: 4500230367000340522, guid: 7b9590758a4aaa84dbe867a1e555bf27, type: 3}
       propertyPath: m_Pivot.x
@@ -1146,27 +1146,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4500230367000340522, guid: 7b9590758a4aaa84dbe867a1e555bf27, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0.5
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4500230367000340522, guid: 7b9590758a4aaa84dbe867a1e555bf27, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0.5
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4500230367000340522, guid: 7b9590758a4aaa84dbe867a1e555bf27, type: 3}
       propertyPath: m_AnchorMin.x
-      value: 0.5
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4500230367000340522, guid: 7b9590758a4aaa84dbe867a1e555bf27, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0.5
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4500230367000340522, guid: 7b9590758a4aaa84dbe867a1e555bf27, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 248.7135
+      value: -847.2865
       objectReference: {fileID: 0}
     - target: {fileID: 4500230367000340522, guid: 7b9590758a4aaa84dbe867a1e555bf27, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 50
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 4500230367000340522, guid: 7b9590758a4aaa84dbe867a1e555bf27, type: 3}
       propertyPath: m_LocalPosition.x
