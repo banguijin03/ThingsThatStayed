@@ -1,6 +1,11 @@
 using System.Collections;
 using UnityEngine;
 
+
+public delegate void InitializeEvent();
+public delegate void UpdateEvent(float deltaTime);
+public delegate void DestroyEvent();
+
 public class GameManager : MonoBehaviour
 {
     static GameManager _instance;
@@ -32,6 +37,25 @@ public class GameManager : MonoBehaviour
 
     IEnumerator initializing;
 
+
+    public static event InitializeEvent OnInitializeManager;
+    public static event InitializeEvent OnInitializeController;
+    public static event InitializeEvent OnInitializeCharacter;
+    public static event InitializeEvent OnInitializeObject;
+
+    public static event UpdateEvent OnUpdateManager;
+    public static event UpdateEvent OnUpdateController;
+    public static event UpdateEvent OnUpdateCharacter;
+    public static event UpdateEvent OnUpdateObject;
+
+    public static event DestroyEvent OnDestroyManager;
+    public static event DestroyEvent OnDestroyController;
+    public static event DestroyEvent OnDestroyCharacter;
+    public static event DestroyEvent OnDestroyObject;
+
+    bool isLoading = true;
+    bool isPlaying = true;
+
     void Awake()
     {
         if (Instance == null)
@@ -56,15 +80,15 @@ public class GameManager : MonoBehaviour
     IEnumerator InitializeManagers()
     {
         int totalLoadCount = 0;
-        totalLoadCount+=CreateManager(ref _ui).LoadCount;
-        totalLoadCount+=CreateManager(ref _data).LoadCount;
-        totalLoadCount+=CreateManager(ref _save).LoadCount;
-        totalLoadCount+=CreateManager(ref _setting).LoadCount;
-        totalLoadCount+=CreateManager(ref _language).LoadCount;
-        totalLoadCount+=CreateManager(ref _audio).LoadCount;
-        totalLoadCount+=CreateManager(ref _camera).LoadCount;
-        totalLoadCount+=CreateManager(ref _input).LoadCount;
-        
+        totalLoadCount += CreateManager(ref _ui).LoadCount;
+        totalLoadCount += CreateManager(ref _data).LoadCount;
+        totalLoadCount += CreateManager(ref _save).LoadCount;
+        totalLoadCount += CreateManager(ref _setting).LoadCount;
+        totalLoadCount += CreateManager(ref _language).LoadCount;
+        totalLoadCount += CreateManager(ref _audio).LoadCount;
+        totalLoadCount += CreateManager(ref _camera).LoadCount;
+        totalLoadCount += CreateManager(ref _input).LoadCount;
+
 
         yield return CreateManager(ref _ui).Connect(this);
         UIBase loadingUI = UIManager.ClaimOpenUI(UIType.Loading);
@@ -72,21 +96,22 @@ public class GameManager : MonoBehaviour
 
         loadingProgress?.Set(0, totalLoadCount);
         yield return _data.Connect(this);
-        loadingProgress?.AddCurrent(1); 
+        loadingProgress?.AddCurrent(1);
         yield return _save.Connect(this);
-        loadingProgress?.AddCurrent(1); 
+        loadingProgress?.AddCurrent(1);
         yield return _setting.Connect(this);
-        loadingProgress?.AddCurrent(1); 
+        loadingProgress?.AddCurrent(1);
         yield return _language.Connect(this);
-        loadingProgress?.AddCurrent(1); 
+        loadingProgress?.AddCurrent(1);
         yield return _audio.Connect(this);
-        loadingProgress?.AddCurrent(1); 
+        loadingProgress?.AddCurrent(1);
         yield return _camera.Connect(this);
-        loadingProgress?.AddCurrent(1); 
+        loadingProgress?.AddCurrent(1);
         yield return _input.Connect(this);
         loadingProgress?.AddCurrent(1);
         yield return new WaitForSeconds(1.0f);
         UIManager.ClaimCloseUI(UIType.Loading);
+        isLoading = false;
         /* 노가다하면 이렇게됨
         if (_ui == null)
         {
@@ -143,16 +168,77 @@ public class GameManager : MonoBehaviour
         Data?.Disconnect();
     }
 
-    ManagerType CreateManager<ManagerType>(ref ManagerType targetVariable) where ManagerType:ManagerBase
+    ManagerType CreateManager<ManagerType>(ref ManagerType targetVariable) where ManagerType : ManagerBase
     {
         if (targetVariable == null)
         {
-            targetVariable= this.TryAddComponent<ManagerType>();
+            targetVariable = this.TryAddComponent<ManagerType>();
         }
         return targetVariable;
+
     }
+    public static void Pause()
+    {
+        Instance.isPlaying = false;
+    }
+    public static void Unpause()
+    {
+        Instance.isPlaying = true;
+    }
+
+    public void InvokeInitializeEvent(ref InitializeEvent OriginEvent)
+    {
+        if (OriginEvent != null)
+        {
+            InitializeEvent currentEvent = OriginEvent;
+            OriginEvent = null;
+            currentEvent.Invoke();
+        }
+    }
+    public void InvokeDestroyEvent(ref DestroyEvent OriginEvent)
+    {
+        if (OriginEvent != null)
+        {
+            DestroyEvent currentEvent = OriginEvent;
+            OriginEvent = null;
+            currentEvent.Invoke();
+        }
+    }
+    
     void Update()
     {
+        if (isLoading) return;
 
+        //매니저를 초기화
+        InvokeInitializeEvent(ref OnInitializeManager);
+        //캐릭터를 초기화
+        InvokeInitializeEvent(ref OnInitializeCharacter);
+        //컨트롤러를 초기화
+        InvokeInitializeEvent(ref OnInitializeController);
+        //오브젝트를 초기화
+        InvokeInitializeEvent(ref OnInitializeObject);
+
+        if (isPlaying)
+        {
+            //프레임 사이에 몇초가 지났는지
+            float deltaTime=Time.deltaTime;
+            //매니저가 업테이트하는 경우
+            OnUpdateManager?.Invoke(deltaTime);
+            //컨트롤러를 업데이트한다
+            OnUpdateController?.Invoke(deltaTime);
+            //캐릭터를 업데이트한다
+            OnUpdateCharacter?.Invoke(deltaTime);
+            //오브젝트를 업데이트한다
+            OnUpdateObject?.Invoke(deltaTime);
+        }
+
+        //오브젝트를 제거
+        InvokeDestroyEvent(ref OnDestroyObject);
+        //컨트롤러를 제거
+        InvokeDestroyEvent(ref OnDestroyController);
+        //캐릭터를 제거
+        InvokeDestroyEvent(ref OnDestroyCharacter);
+        //매니저를 제거
+        InvokeDestroyEvent(ref OnDestroyManager);
     }
 }
