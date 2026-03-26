@@ -623,6 +623,7 @@ GameObject:
   - component: {fileID: 700597189}
   - component: {fileID: 700597188}
   - component: {fileID: 700597190}
+  - component: {fileID: 700597191}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -693,6 +694,31 @@ MonoBehaviour:
   m_DefaultActionMap: General
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
+--- !u!114 &700597191
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 700597187}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5051ba37f1769494c97f1bcfbaa7baaf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObjectManager
+  testSettings:
+  - poolName: "1\uBC88"
+    target: {fileID: 0}
+    countInitial: 0
+    countAdditional: 0
+  - poolName: "2\uBC88"
+    target: {fileID: 0}
+    countInitial: 0
+    countAdditional: 0
+  - poolName: "3\uBC88"
+    target: {fileID: 0}
+    countInitial: 0
+    countAdditional: 0
 --- !u!1 &824623250
 GameObject:
   m_ObjectHideFlags: 0

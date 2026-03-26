@@ -17,6 +17,9 @@ public class GameManager : MonoBehaviour
     DataManager _data;
     public DataManager Data => _data;
 
+    ObjectManager _objectM;
+    public ObjectManager ObjectM => _objectM;
+
     SaveManager _save;
     public SaveManager Save => _save;
 
@@ -71,7 +74,6 @@ public class GameManager : MonoBehaviour
 
         StartCoroutine(initializing);
     }
-
     void OnDestroy()
     {
         if (initializing != null) StopCoroutine(initializing);
@@ -82,6 +84,7 @@ public class GameManager : MonoBehaviour
         int totalLoadCount = 0;
         totalLoadCount += CreateManager(ref _ui).LoadCount;
         totalLoadCount += CreateManager(ref _data).LoadCount;
+        totalLoadCount += CreateManager(ref _objectM).LoadCount;
         totalLoadCount += CreateManager(ref _save).LoadCount;
         totalLoadCount += CreateManager(ref _setting).LoadCount;
         totalLoadCount += CreateManager(ref _language).LoadCount;
@@ -96,6 +99,8 @@ public class GameManager : MonoBehaviour
 
         loadingProgress?.Set(0, totalLoadCount);
         yield return _data.Connect(this);
+        loadingProgress?.AddCurrent(1);
+        yield return _objectM.Connect(this);
         loadingProgress?.AddCurrent(1);
         yield return _save.Connect(this);
         loadingProgress?.AddCurrent(1);
@@ -155,19 +160,27 @@ public class GameManager : MonoBehaviour
         }*/
 
     }
-
     void DeleteManagers()
     {
+        //유저입력
         Input?.Disconnect();
+        //오브젝트
+        ObjectM?.Disconnect();
+        //오디오
         Audio?.Disconnect();
+        //언어
         Language?.Disconnect();
+        //세팅
         Setting?.Disconnect();
+        //세이브
         Save?.Disconnect();
+        //카메라
         Camera?.Disconnect();
+        //ui
         UI.Disconnect();
+        //데이터파일
         Data?.Disconnect();
     }
-
     ManagerType CreateManager<ManagerType>(ref ManagerType targetVariable) where ManagerType : ManagerBase
     {
         if (targetVariable == null)

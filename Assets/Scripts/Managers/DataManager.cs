@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
+
 public class DataManager : ManagerBase
 {
-    static Dictionary<System.Type, Dictionary<string,Object>> dataDictionary = new();
+    static Dictionary<System.Type, Dictionary<string, Object>> dataDictionary = new();
     public override int LoadCount
     {
         get
@@ -33,7 +34,9 @@ public class DataManager : ManagerBase
             progressUI?.AddCurrent(1);
             statusUI?.SetCurrentStatus($"Load Data ({loaded}/{total})");
         };
+
         LoadAllFromAssetBundle<GameObject>("Global", ProgressOnLoad);
+
         yield return null;
     }
 
@@ -51,7 +54,6 @@ public class DataManager : ManagerBase
     {
         if (target == null) return;
         Dictionary<string, Object> innerDictionary;
-
         if (!dataDictionary.TryGetValue(typeof(T), out innerDictionary))
         {
             innerDictionary = new();
@@ -59,6 +61,7 @@ public class DataManager : ManagerBase
         }
         innerDictionary.TryAdd(target.name, target);
     }
+
     public static T LoadDataFile<T>(string fileName) where T : Object
     {
         if (dataDictionary.TryGetValue(typeof(T), out Dictionary<string, Object> innerDictionary))
@@ -72,10 +75,11 @@ public class DataManager : ManagerBase
     }
     public async void LoadAllFromAssetBundle<T>(string label, System.Action actionForEachLoad) where T : Object
     {
+        //                                 V                (매개변수) => { 내용 }
         var finder = Addressables.LoadAssetsAsync<T>(label, (T loaded) =>
         {
             SaveDataFile(loaded); 
-            actionForEachLoad();  
+            actionForEachLoad(); 
         });
         await finder.Task;
         finder.Release();
@@ -84,6 +88,7 @@ public class DataManager : ManagerBase
     public async void LoadFileFromAssetBundle<T>(string address) where T : Object
     {
         var finder = Addressables.LoadAssetAsync<T>(address);
+        await finder.Task; 
         SaveDataFile(finder.Result);
         finder.Release();
     }

@@ -1,21 +1,37 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
-public class MouseFollower : MonoBehaviour
+public class MouseFollower : MonoBehaviour, IFunctionable
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        InputManager.OnLeftMouseUp += CreateToMouse;
-        InputManager.OnRightMouseDown += DestroyOnMouse;
+        RegistrationFunctions();
     }
+    void OnDestroy()
+    {
+        UnRegistrationFunctions();
+    }
+
+    public void RegistrationFunctions()
+    {
+        InputManager.OnMouseLeftUp += CreateToMouse;
+        InputManager.OnMouseRightDown += DestroyOnMouse;
+    }
+    public void UnRegistrationFunctions()
+    {
+        InputManager.OnMouseLeftUp -= CreateToMouse;
+        InputManager.OnMouseRightDown -= DestroyOnMouse;
+    }
+
     void DestroyOnMouse(Vector2 screenPosition, Vector3 worldPosition)
     {
-        Debug.Log(GameManager.Instance.Input.GetGameObjectUnderCursor());
-        Debug.Log($"{screenPosition}:{worldPosition}");
+        ObjectManager.Destroy(GameManager.Instance.Input.GetGameObjectUnderCursor());
     }
+
     void CreateToMouse(Vector2 screenPosition, Vector3 worldPosition)
     {
-        Instantiate(DataManager.LoadDataFile<GameObject>("Square 3"), worldPosition, Quaternion.identity);
+        GameObject inst = ObjectManager.CreateObject(DataManager.LoadDataFile<GameObject>("Square 14"));
+        inst.transform.position = worldPosition;
     }
 
     void MoveToMouse(Vector2 screenPosition, Vector3 worldPosition)

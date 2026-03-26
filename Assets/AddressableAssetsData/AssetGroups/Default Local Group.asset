@@ -21,6 +21,13 @@ MonoBehaviour:
     m_SerializedLabels:
     - Origin
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6a6583ab73bcb3c43a5da1f64d0a4bab
+    m_Address: Origin/ScriptableObjects/Globals
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Global
+    - Origin
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 809770aae2480d94699c08ab2a56aa77
     m_Address: Origin/Prefabs/Globals
     m_ReadOnly: 0

@@ -11,6 +11,7 @@ public class CameraManager : ManagerBase
     public PhysicsRaycaster Raycaster3D { get; private set; }
     protected override IEnumerator OnConnected(GameManager newManager)
     {
+        SetMainCamera(Camera.main);
         yield return null;
     }
     protected override void OnDisconnected()
