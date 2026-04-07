@@ -3,39 +3,47 @@ using UnityEngine;
 
 public class MouseFollower : MonoBehaviour, IFunctionable
 {
-    void Start()
-    {
-        RegistrationFunctions();
-    }
-    void OnDestroy()
-    {
-        UnRegistrationFunctions();
-    }
+	void Start()
+	{
+		RegistrationFunctions();
+	}
+	void OnDestroy()
+	{
+		UnregistrationFunctions();
+	}
 
-    public void RegistrationFunctions()
-    {
-        InputManager.OnMouseLeftUp += CreateToMouse;
-        InputManager.OnMouseRightDown += DestroyOnMouse;
-    }
-    public void UnRegistrationFunctions()
-    {
-        InputManager.OnMouseLeftUp -= CreateToMouse;
-        InputManager.OnMouseRightDown -= DestroyOnMouse;
-    }
+	public void RegistrationFunctions()
+	{
+		//마우스 움직임이 발생했을 때에 할 일에 => 마우스 따라가기를 넣기!
+		//클릭할 때 기능을 추가했다!
+		InputManager.OnCancel += (value) => UIManager.ClaimPopUp("어","취소당함","어쩌지");
+		InputManager.OnMove += (value) => UIManager.ClaimPopUp("어", $"움직임 : {value}", "가자");
+	}
 
-    void DestroyOnMouse(Vector2 screenPosition, Vector3 worldPosition)
-    {
-        ObjectManager.Destroy(GameManager.Instance.Input.GetGameObjectUnderCursor());
-    }
+	//사람이 언제 죽는지 아나?
+	//사람들에게서 잊혀졌을 때다
+	public void UnregistrationFunctions()
+	{
+		InputManager.OnMouseLeftButton -= CreateToMouse;
+		InputManager.OnMouseRightButton -= DestroyOnMouse;
+	}
 
-    void CreateToMouse(Vector2 screenPosition, Vector3 worldPosition)
-    {
-        GameObject inst = ObjectManager.CreateObject(DataManager.LoadDataFile<GameObject>("Square 14"));
-        inst.transform.position = worldPosition;
-    }
 
-    void MoveToMouse(Vector2 screenPosition, Vector3 worldPosition)
-    {
-        transform.position = worldPosition;
-    }
+	void DestroyOnMouse(bool value, Vector2 screenPosition, Vector3 worldPosition)
+	{
+		if (!value) return;
+		ObjectManager.DestroyObject(GameManager.Instance.Input.GetGameObjectUnderCursor());
+	}
+
+	void CreateToMouse(bool value, Vector2 screenPosition, Vector3 worldPosition)
+	{
+		if(value) return;
+		//저희가.. 로딩해놓은 거 있잖아요!
+		GameObject inst = ObjectManager.CreateObject("NemoMan", worldPosition);
+	}
+
+	void MoveToMouse(bool value, Vector2 screenPosition, Vector3 worldPosition)
+	{
+		DestroyOnMouse(value, screenPosition, worldPosition);
+	}
 }

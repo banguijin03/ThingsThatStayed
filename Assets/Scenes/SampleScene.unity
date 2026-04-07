@@ -706,19 +706,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5051ba37f1769494c97f1bcfbaa7baaf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObjectManager
-  testSettings:
-  - poolName: "1\uBC88"
-    target: {fileID: 0}
-    countInitial: 0
-    countAdditional: 0
-  - poolName: "2\uBC88"
-    target: {fileID: 0}
-    countInitial: 0
-    countAdditional: 0
-  - poolName: "3\uBC88"
-    target: {fileID: 0}
-    countInitial: 0
-    countAdditional: 0
 --- !u!1 &824623250
 GameObject:
   m_ObjectHideFlags: 0
@@ -1341,12 +1328,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 1748080560}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 774c25e1fed26b54c8d0bcee43153388, type: 3}
+  m_Script: {fileID: 11500000, guid: 8555a5854190fa94c878553cd899d196, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UI_LoadingScreen
-  progressBar: {fileID: 2295521067780365511}
-  progressText: {fileID: 1407987488}
-  explainText: {fileID: 824623252}
+  progressBar: {fileID: 3184164850526979480, guid: ca588a0b77551ad4f9069fcdd392d3f8, type: 3}
+  progressText: {fileID: 0}
+  explainText: {fileID: 0}
 --- !u!1001 &794669817231110449
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1599,17 +1586,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 1766892179464891314, guid: ca588a0b77551ad4f9069fcdd392d3f8, type: 3}
   m_PrefabInstance: {fileID: 2295521067780365509}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &2295521067780365511 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3184164850526979480, guid: ca588a0b77551ad4f9069fcdd392d3f8, type: 3}
-  m_PrefabInstance: {fileID: 2295521067780365509}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 624636644}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Slider
 --- !u!114 &2295521067780365512
 MonoBehaviour:
   m_ObjectHideFlags: 0

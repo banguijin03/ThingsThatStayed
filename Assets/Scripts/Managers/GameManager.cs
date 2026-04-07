@@ -1,257 +1,319 @@
 using System.Collections;
 using UnityEngine;
 
-
 public delegate void InitializeEvent();
+//                                ÀÌÀü ½Ã°£À¸·ÎºÎÅÍ ¾ó¸¶³ª Áö³µ´ÂÁö
+//½Ã¼Ó 3km/h·Î ´Ş¸®´Â ´ç½Å, 1.5½Ã°£ µÚ¿¡ ´ç½ÅÀº ¾ó¸¶³ª ¿òÁ÷ÀÏ °ÍÀÎ°¡?
+//4.5km¸¦ ÀÌµ¿ÇØ¾ß ÇÑ´Ù!
 public delegate void UpdateEvent(float deltaTime);
 public delegate void DestroyEvent();
 
 public class GameManager : MonoBehaviour
 {
-    static GameManager _instance;
-    public static GameManager Instance => _instance;
+	//Static : ÇÁ·Î±×·¥¿¡¼­ ´Ü ÇÏ³ª, ¾îµğ¼­µçÁö Á¢±Ù °¡´É!
+	static GameManager _instance;
+	public static GameManager Instance => _instance;
 
-    UIManager _ui;
-    public UIManager UI => _ui;
+	UIManager _ui;
+	public UIManager		UI => _ui;
 
-    DataManager _data;
-    public DataManager Data => _data;
+	DataManager _data;
+	public DataManager		Data => _data;
 
-    ObjectManager _objectM;
-    public ObjectManager ObjectM => _objectM;
+	ObjectManager _objectM;
+	public ObjectManager ObjectM => _objectM;
 
-    SaveManager _save;
-    public SaveManager Save => _save;
+	SaveManager _save;
+	public SaveManager		Save => _save;
 
-    SettingManager _setting;
-    public SettingManager Setting => _setting;
+	SettingManager _setting;
+	public SettingManager	Setting => _setting;
 
-    LanguageManager _language;
-    public LanguageManager Language => _language;
+	LanguageManager _language;
+	public LanguageManager	Language => _language;
 
-    AudioManager _audio;
-    public AudioManager Audio => _audio;
+	AudioManager _audio;
+	public AudioManager	Audio => _audio;
 
-    CameraManager _camera;
-    public CameraManager Camera => _camera;
+	CameraManager _camera;
+	public CameraManager	Camera => _camera;
 
-    InputManager _input;
-    public InputManager Input => _input;
+	InputManager _input;
+	public InputManager	Input => _input;
 
-    IEnumerator initializing;
+	IEnumerator initializing; //ÃÊ±âÈ­ Áß ÄÚ·çÆ¾!
 
+	public static event InitializeEvent	OnInitializeManager;
+	public static event InitializeEvent	OnInitializeController;
+	public static event InitializeEvent	OnInitializeCharacter;
+	public static event InitializeEvent	OnInitializeObject;
+	public static event UpdateEvent		OnUpdateManager;
+	public static event UpdateEvent		OnUpdateController;
+	public static event UpdateEvent		OnUpdateCharacter;
+	public static event UpdateEvent		OnUpdateObject;
+	public static event DestroyEvent	OnDestroyManager;
+	public static event DestroyEvent	OnDestroyController;
+	public static event DestroyEvent	OnDestroyCharacter;
+	public static event DestroyEvent	OnDestroyObject;
 
-    public static event InitializeEvent OnInitializeManager;
-    public static event InitializeEvent OnInitializeController;
-    public static event InitializeEvent OnInitializeCharacter;
-    public static event InitializeEvent OnInitializeObject;
+	bool isLoading = true;
+	bool isPlaying = true;
 
-    public static event UpdateEvent OnUpdateManager;
-    public static event UpdateEvent OnUpdateController;
-    public static event UpdateEvent OnUpdateCharacter;
-    public static event UpdateEvent OnUpdateObject;
-
-    public static event DestroyEvent OnDestroyManager;
-    public static event DestroyEvent OnDestroyController;
-    public static event DestroyEvent OnDestroyCharacter;
-    public static event DestroyEvent OnDestroyObject;
-
-    bool isLoading = true;
-    bool isPlaying = true;
-
-    void Awake()
+	//Awake		: ÀÌ Ä£±¸°¡ ½ÃÀÛÇÒ ¶§ (¾ÆÄ§¿¡ ´«À» ¶ä)
+	//OnEnabled : ÀÌ Ä£±¸°¡ ½ÃÀÛÇÒ ¶§ (Á¤½Å Â÷¸²) => ¿©·¯¹ø ½ÇÇàµµ µÈ´Ù
+	//OnDisabled: ±âÀı
+	//Reset		: ÀÏ ½ÃÀÛÇÏ±â À§ÇØ ÃÊ±âÈ­ ÁØºñ
+	//Start		: ÀÌ Ä£±¸°¡ ½ÃÀÛÇÒ ¶§ (ÇÏ·çÀÇ ½ÃÀÛ)
+	void Awake()
     {
-        if (Instance == null)
-        {
-            _instance = this;
-        }
-        else
-        {
-            Destroy(this);
-            return;
-        }
-        initializing = InitializeManagers();
+        //°ÔÀÓ¸Å´ÏÀú°¡ ÀÏ¾î³ª¼­ Á¦ÀÏ Ã³À½¿¡ ÇÒ ÀÏ
+		//ÁøÁ¤ÇÑ °ÔÀÓ ¸Å´ÏÀú¸¦ °¡¸£´Â ¸ñ¼ûÀ» °Ç »çÅõ
+		//°ÔÀÓ ¸Å´ÏÀú°¡.. µÑÀÌ¿¡¿ä
+		//µÑ Áß ÇÏ³ª¸¸ ÁøÁ¤ÇÑ °ÔÀÓ ¸Å´ÏÀú!
+		//ÇÏ´Ã ¾Æ·¡ µÎ °³ÀÇ ÅÂ¾çÀº ÀÖÀ» ¼ö ¾ø½À´Ï´Ù
+		//¸ÕÀú ¿Â ¾Ö¸¦ ÀÎÁ¤ÇÑ´Ù.
+		//¸ÕÀú ¿Â ¾Ö¸¦ Á×ÀÌ°í °£´Ù.
+		//ÇÏ´ø ³ğÀ» ±×´ë·Î À¯ÁöÇÏ´Â °ÍÀÌ ´õ ÁÁÀ½!
+		//¿¹¸¦ µé¾î¼­, ±¹°¡¿¡ È¸±ºÀÌ »ı°åÀ½
+		//°ÔÀÓÇÏ´Â Áß°£¿¡ °©ÀÚ±â »õ·Î¿î ¼¼·ÂÀÌ »ı°åÀ½!
+		//¸¸¾à ¿ø·¡ ÀÖ´ø ¾Ö°¡ Á×°Ô ¸¸µé¸é => »õ·Î¿î ±¹°¡°¡ »ı±è
+		//=>±¹°¡ Á¤ºñ¸¦ Ã³À½ºÎÅÍ ´Ù½Ã ÇØ¾ß ÇÔ
+		if(Instance == null) //Áö±İ ¿ÕÀÌ ¾øÀ½
+		{
+			//³»°¡ ¹Ù·Î ÀÌ ½Ã´ëÀÇ »õ·Î¿î ¿ÕÀÌ´Ù!
+			_instance = this;
+		}
+		else //Áö±İ ¿ÕÀÌ ÀÖÀ½
+		{
+			//¿ª¸ğ¸¦ ÀÏÀ¸Å² ÁËÀÎÀ» Âü¼öÇÏ¶ó
+			Destroy(this);
+			return;
+		}
+		//¼¼»ó¿¡ ´Ü ÇÏ³ª¸¸ ÀÖµµ·Ï À¯ÁöÇÏ´Â ÆĞÅÏ => ½Ì±ÛÅÏ ÆĞÅÏ (Singleton Pattern)
 
-        StartCoroutine(initializing);
-    }
-    void OnDestroy()
+		//Á¦°¡ ÀÌ°É "¿Õ"ÀÌ¶ó°í ºÒ·¶Àİ¾Æ¿ä?
+		//"¿Õ"ÀÌ ³ó»ç/Àå»ç...µîµîÀ» ÇÒ±î¿ä?
+		//¿ÕÀº ½ÅÇÏµé¿¡°Ô ÀÏÀ» ÁøÇàÇÏ¶ó°í °ü¸®ÇÏ´Â ¿ªÇÒÀÌ µÉ °Ì´Ï´Ù!
+		//¿ÕÀÌ ³ó»ç ¸¶½ºÅÍ°¡ µÉ ¼ö ÀÖÀ»±î?
+		//¸ğµç °ÍÀ» ´Ù ÇÒ ¼ö ÀÖ´Â »ç¶÷ÀÌ¾î¾ß ¿ÕÀÌ µÇ´Â °ÍÀÌ ¾Æ´Ï¶ó
+		//½ÃÅ³ ¼ö ÀÖ°í, °ü¸®ÇÏ´Â ¹æ¹ıÀ» ¾Ë¾Æ¾ß µÈ´Ù!
+		//ÇÏºÎ Á¶Á÷À» ¸¸µé °ÍÀÌ´Ù
+		//°ÔÀÓ¿¡¼­ "°ü¸®"µÇ¾î¾ß ÇÏ´Â °ÍµéÀÌ ¹«¾ùÀÏ±î?
+		//¹İÈ¯Çü½ÄÀº IEnumeratorÀÔ´Ï´Ù. "¹İº¹ÀÚ" => ¹İº¹ÇØ¼­ ÇÔ¼ö°¡ ½ÇÇàµÊ => ÇÁ·¹ÀÓ ´ÜÀ§·Î ±â´Ù·È´Ù°¡ ½ÇÇà!
+		//ÇÑ ¹ø ½ÇÇàÀ» ÇÏ°í Yield ¾çº¸Çß´Ù°¡ ´ÙÀ½ ÇÁ·¹ÀÓ¿¡ ¶Ç ³ª¿Í¼­ ½ÇÇàÇÏ°í! ¹İº¹!
+		//                 (´õ ±â´Ù·Á¾ß µÇ´Â °æ¿ì¿¡´Â ´õ ±â´Ù¸®±âµµ °¡´É!)
+		//                    WaitForSeconds(10.0f), ÀÏ¾î³µ´Âµ¥ ¾ÆÁ÷ ½Ã°£ÀÌ ¾ÈµÆÀ½. ´õ Àß ¼ö ÀÖ°Ú±º ¤·¤·
+		//±×·³.. ÀÌ°É IEnumerator·Î "ÀúÀå"ÇßÀ» ¶§ ¹«¾ùÀ» ÇÒ ¼ö ÀÖÀ»±î?
+		initializing = InitializeManagers();
+
+		//ÀúÀåÇß±â ¶§¹®¿¡, ÀÌ Ä£±¸¸¦ "½ÃÀÛ"½ÃÅ°°Å³ª "Áß´Ü"½ÃÅ³ ¼ö ÀÖ¾î¿ä!
+		//½ÃÀÛÀ» ½ÃÅ°´Â °ÍÀº
+		StartCoroutine(initializing);
+
+	}
+
+	void OnDestroy() //¸Å´ÏÀú°¡ ¾ø¾îÁö¸é
+	{
+		if(initializing != null) StopCoroutine(initializing); //·ÎµùÀ» ÁøÇàÇÏ´Â ÁßÀÌ¾ú´Ù¸é ²÷¾î¹ö¸± ¼ö ÀÖµµ·Ï!
+		DeleteManagers(); //ÇÏÀ§ ¸Å´ÏÀúµéµµ ¾ø¾îÁö°Ô!
+	}
+
+	//¾ê°¡ ¹®Á¦
+	//·ÎµùÀº... ¾ó¸¶³ª °É¸±±î
+	//1ÇÁ·¹ÀÓ¸¸¿¡ ³¡³¾ ¼ö ÀÖÀ»±î?
+	//1ÇÁ·¹ÀÓ ³Ñ´Â ½Ã°£µ¿¾È "ÀÌ ÇÔ¼ö"°¡ ½ÇÇàµÇ°í ÀÖÀ¸¸é ¹«½¼ ÀÏÀÌ ÀÏ¾î³¯±î?
+	//°ÔÀÓÀÌ ¸ØÃä´Ï´Ù. ÀÌ ÇÔ¼ö ³¡³¯ ¶§±îÁö
+	//ÀÌ »óÅÂ¿¡¼­ °ÔÀÓÀ» Å¬¸¯ÇÏ¸é ¾î¶»°Ô µÇ´Â°¡ => ÀÀ´ä¾øÀ½ => À¯Àú´Â ²¨¹ö¸²
+	//"±â´Ù¸² ÇÔ¼ö"
+	//coroutine = co - routine
+	//           ÇÔ²²   ·çÆ¾
+	//         È­¸éÃâ·Â À¯ÀúÀÔ·Â /   ·Îµù
+	//					 ¿ä¸®   /   Ã»¼Ò
+	//¿îµ¿À» ÇØ¾ß ÇÕ´Ï´Ù. »óÃ¼·çÆ¾ ÇÏÃ¼·çÆ¾
+	//                    1½Ã°£    1½Ã°£
+	//¿À´Ã ³²Àº ½Ã°£ÀÌ 1½Ã°£
+	//¿·¿¡ ÀÖ´Â Ä£±¸¸¦ µ¥·Á¿Í¼­ »óÃ¼ 1½Ã°£ ½ÃÅ°°í
+	//Àú´Â ÇÏÃ¼ 1½Ã°£ ÇÏ¸é => ¾ÏÆ° µÑ ´Ù ÇßÀ½
+	//IEnumerator => Start
+	//WaitForSecondsÀ» ÅëÇØ¼­ ½Ã°£À» "±â´Ù¸°" ÀûÀÌ ÀÖ¾úÁÒ!
+	IEnumerator InitializeManagers()
+	{
+		//UI¸¦ ¸¸µé¾î¼­ ·ÎµùÃ¢ÀÌ¶ó´øÁö, ´Ù¸¥ À¯Àú¿¡°Ô º¸¿©ÁÙ ¼ö ÀÖ´Â °ø°£
+		//µ¥ÀÌÅÍ ºÒ·¯¿À±â
+		//À¯Àú ¼¼ÀÌºê ºÒ·¯¿À±â
+		//¼³Á¤°ªÀ» Ã£¾Æ¼­ ¼¼ÆÃ
+		//¾ğ¾îµµ ¼¼ÆÃ
+		//»ç¿îµåµµ ¼¼ÆÃ
+		//Ä«¸Ş¶ó ÃÊ±âÈ­
+		//À¯Àú ÀÔ·Â ¹Ş±â ½ÃÀÛ
+		//¸î °³°¡ ÇÊ¿äÇÑÁö Áı°è¸¦ ¹ŞÀ» ¶§ => ÇÊ¿äÇÑ °Í! Àû¾îµÑ °ø°£ÀÌ ÇÊ¿äÇØ¿ä!
+		int totalLoadCount = 0;
+		totalLoadCount += CreateManager(ref _ui).LoadCount;
+		totalLoadCount += CreateManager(ref _data).LoadCount;
+		totalLoadCount += CreateManager(ref _objectM).LoadCount;
+		totalLoadCount += CreateManager(ref _save).LoadCount;
+		totalLoadCount += CreateManager(ref _setting).LoadCount;
+		totalLoadCount += CreateManager(ref _language).LoadCount;
+		totalLoadCount += CreateManager(ref _audio).LoadCount;
+		totalLoadCount += CreateManager(ref _camera).LoadCount;
+		totalLoadCount += CreateManager(ref _input).LoadCount;
+
+		yield return UI.Initialize(this);
+		UIBase loadingUI = UIManager.ClaimOpenUI(UIType.Loading); //UI SystemÀÌ µ¹¾Æ°¡±â ½ÃÀÛÇßÀ¸´Ï±î ±â´ÉÀ» ½ÇÇàÇØº¸±â!
+		IProgress<int> loadingProgress = loadingUI as IProgress<int>;
+
+		loadingProgress?.Set(0, totalLoadCount);
+		yield return Data.Connect(this);
+		loadingProgress?.AddCurrent(1);
+		yield return ObjectM.Connect(this);
+		loadingProgress?.AddCurrent(1);
+		yield return UI.Connect(this);
+		loadingProgress?.AddCurrent(1);
+		yield return Save.Connect(this);
+		loadingProgress?.AddCurrent(1);
+		yield return Setting.Connect(this);
+		loadingProgress?.AddCurrent(1);
+		yield return Language.Connect(this);
+		loadingProgress?.AddCurrent(1);
+		yield return Audio.Connect(this);
+		loadingProgress?.AddCurrent(1);
+		yield return Camera.Connect(this);
+		loadingProgress?.AddCurrent(1);
+		yield return Input.Connect(this);
+		loadingProgress?.AddCurrent(1);
+		yield return null;
+		UIManager.ClaimCloseUI(UIType.Loading);
+		isLoading = false;
+	}
+
+	void DeleteManagers()
+	{
+		//À¯ÀúÀÔ·Â	InputManager
+		Input?.Disconnect();
+		//¿ÀºêÁ§Æ®	ObjectManager
+		ObjectM?.Disconnect();
+		//¿Àµğ¿À		AudioManager
+		Audio?.Disconnect();
+		//¾ğ¾î		LanguageManager
+		Language?.Disconnect();
+		//¼¼ÆÃ		SettingManager
+		Setting?.Disconnect();
+		//¼¼ÀÌºê		SaveManager
+		Save?.Disconnect();
+		//Ä«¸Ş¶ó		CameraManager
+		Camera?.Disconnect();
+		//UI		UIManager
+		UI?.Disconnect();
+		//µ¥ÀÌÅÍÆÄÀÏ DataManager
+		Data?.Disconnect();
+	}
+
+	//´Ş¶óÁö´Â °ÍÀÌ "ÀÚ·áÇü"»ÓÀÌ¶ó¸é
+	//"ÀÚ·áÇü"¿¡ µû¶ó º¯¼ö·Î ÀÛ¿ëÇÏ´Â ÇÔ¼ö¸¦ ¸¸µé ¼ö ÀÖÁö ¾ÊÀ»±î?
+	//"Generic Method" => ¹ü¿ë ÇÔ¼ö
+	//¹İÈ¯°ª ÀÌ¸§<ÀÚ·áÇü>(¸Å°³º¯¼ö) where ÀÚ·áÇü : ºÎ¸ğ
+
+	//_input¿¡´Ù°¡ °ªÀ» ³Ö°í ½ÍÀºµ¥
+	//´Ù¸¥ µ¥¿¡¼­´Â _audio¿¡´Ù°¡ °ªÀ» ³Ö´Â´Ù!
+	//´ë»óÀÌ µÇ´Â º¯¼ö¸¦ °¡Á®¿À±ä ÇØ¾ß ÇÔ!
+	//¿øº» °ªÀ» ¹Ù²ã¾ß ÇÔ!
+	//								¿øº» °ªÀ» "ÂüÁ¶"ÇÑ´Ù
+	//                              ¿øº» °ªÀÌ¶û ¿¬°áµÇ´Â º¯¼ö·Î ¸¸µé¾îÁÖ±â!
+	//                              Reference => ref
+	ManagerType CreateManager<ManagerType>(ref ManagerType targetVariable) where ManagerType : ManagerBase
+	{
+		if (targetVariable == null)
+		{
+			//ÄÄÆ÷³ÍÆ®´Â ¾î¶»°Ô Ãß°¡ÇØ¾ß ÇÒ °ÍÀÎ°¡?
+			//°ÔÀÓ ¿ÀºêÁ§Æ®¸¦ ´©¸£¸é => InspectorÃ¢¿¡ [Add Component]
+			//¹öÆ°À» ´­·¶´Ù¶ó°í ÇÏ´Â °ÍÀº => ±â´ÉÀÌ ½ÇÇàµÈ´Ù´Â °Å°í => ÇÔ¼ö°¡ ÀÖ´Ù´Â ¶æ
+			targetVariable = this.TryAddComponent<ManagerType>();
+		}
+
+		return targetVariable;
+	}
+
+	public static void Pause()
+	{
+		Instance.isPlaying = false;
+	}
+
+	public static void Unpause()
+	{
+		Instance.isPlaying = true;
+	}
+
+	void InvokeInitializeEvent(ref InitializeEvent OriginEvent)
+	{
+		if (OriginEvent != null) //ÀÌº¥Æ®°¡ ÀÖ¾î¾ß ½ÇÇàÇÏÁö
+		{
+			InitializeEvent CurrentEvent = OriginEvent; //ÀúÀåÇØ³õ°í
+			OriginEvent = null; //ºñ¿ì°í
+			CurrentEvent.Invoke(); //ÀúÀåÇØµĞ°Å ½ÇÇàÇÏ±â
+		}
+	}
+	void InvokeDestroyEvent(ref DestroyEvent OriginEvent)
+	{
+		if (OriginEvent != null) //ÀÌº¥Æ®°¡ ÀÖ¾î¾ß ½ÇÇàÇÏÁö
+		{
+			DestroyEvent CurrentEvent = OriginEvent; //ÀúÀåÇØ³õ°í
+			OriginEvent = null; //ºñ¿ì°í
+			CurrentEvent.Invoke(); //ÀúÀåÇØµĞ°Å ½ÇÇàÇÏ±â
+		}
+	}
+
+	//°ÔÀÓ¸Å´ÏÀú¸¸ ¾÷µ¥ÀÌÆ®¸¦ ÇÏ´Â ÀÌÀ¯!
+	//¸ğµÎ°¡ ¾÷µ¥ÀÌÆ®¸¦ ÇÏ°Ú´Ù°í ¾Æ¿ì¼ºÀÌ¶ó¸é
+	//´©°¡ ¸ÕÀúÇÏ´ÂÁö ¸ğ¸£°í
+	//¸¸¾à¿¡, ¸¶¿ì½º°¡ ¿òÁ÷¿´´Âµ¥ ±×°Ô °»½ÅµÇÁö ¾ÊÀº »óÅÂ·Î
+	//ÇÃ·¹ÀÌ¾î Ä³¸¯ÅÍ°¡ ³Ê¹« ½Å³ª¼­ ¸ÕÀú ½î±â·Î °áÁ¤Çß´Ù!
+
+	//1ÇÁ·¹ÀÓ Àü¿¡ Á¦°¡ ¶¥¿¡ ¸¶¿ì½º¸¦ ¿Ã¸®°í ÀÖ¾ú´Âµ¥
+	//ÀÌ¹ø ÇÁ·¹ÀÓ¿¡ ¸ó½ºÅÍ¸¦ °Ü³ÉÇß½À´Ï´Ù.
+
+	//ÇÃ·¹ÀÌ¾î Ä³¸¯ÅÍ°¡ InputManagerº¸´Ù ÇÑ ¹ßÀÚ±¹ ¸ÕÀú ½ğ´Ù¸é?
+	//¸ó½ºÅÍ°¡ Á×Àº »óÅÂ << ¸ğµç ¾ÖµéÀÇ ÅÏÀÌ Áö³­ ´ÙÀ½¿¡ Ã¼Å©ÇÏ±â!
+	//ÇÏ½º½ºÅæ¿¡¼­ ¿©·¯¹ø ¹İº¹ÇØ¼­ ¶§¸®´Â Ä«µå¸¦ º¸¸é
+	//ÀÌ¹Ì Á×Àº Ä«µåµéÀ» ¶Ç ¶§¸®´Â °Íµµ º¼ ¼ö ÀÖ°Åµç¿ä?
+	//¿µ¿õÀÌ Á×¾úÀ» ¶§? ÇÏ¼öÀÎÀÌ Á×¾úÀ» ¶§? => ¼ø¼­¸¦ ¸ÂÃá´Ù!
+	void Update()
     {
-        if (initializing != null) StopCoroutine(initializing);
-        DeleteManagers();
-    }
-    IEnumerator InitializeManagers()
-    {
-        int totalLoadCount = 0;
-        totalLoadCount += CreateManager(ref _ui).LoadCount;
-        totalLoadCount += CreateManager(ref _data).LoadCount;
-        totalLoadCount += CreateManager(ref _objectM).LoadCount;
-        totalLoadCount += CreateManager(ref _save).LoadCount;
-        totalLoadCount += CreateManager(ref _setting).LoadCount;
-        totalLoadCount += CreateManager(ref _language).LoadCount;
-        totalLoadCount += CreateManager(ref _audio).LoadCount;
-        totalLoadCount += CreateManager(ref _camera).LoadCount;
-        totalLoadCount += CreateManager(ref _input).LoadCount;
+		//°ÔÀÓ ÁøÇàÀ» ÇÒ ¼ö ÀÖ´ÂÁö ¿©ºÎ¸¦ Á¶Á¤ÇÒ ¼öµµ ÀÖ´Ù!
+		//ÃÊ±âÈ­ ÇØ¾ßÇÏ´ÂÁö, ÇÏÁö ¸»¾Æ¾ß ÇÏ´ÂÁö~
+		//Pause»óÅÂ´Ù! => ¾÷µ¥ÀÌÆ®¸¦ ÇÏÁö ¾Ê´Â´Ù!
+		if (isLoading) return;
 
+		//ÃÊ±âÈ­
+		//¸Å´ÏÀú¸¦ ÃÊ±âÈ­ÇÑ´Ù
+		InvokeInitializeEvent(ref OnInitializeManager);
+		//Ä³¸¯ÅÍ¸¦ ÃÊ±âÈ­ÇÑ´Ù
+		InvokeInitializeEvent(ref OnInitializeCharacter);
+		//ÄÁÆ®·Ñ·¯¸¦ ÃÊ±âÈ­ÇÑ´Ù => Ä³¸¯ÅÍ°¡ ÀÖ´Â »óÅÂ¿¡¼­ µ¹¾Æ°¡¾ß ÇÏ´Ï±î!
+		InvokeInitializeEvent(ref OnInitializeController);
+		//¿ÀºêÁ§Æ®¸¦ ÃÊ±âÈ­ÇÑ´Ù
+		InvokeInitializeEvent(ref OnInitializeObject);
 
-        yield return CreateManager(ref _ui).Connect(this);
-        UIBase loadingUI = UIManager.ClaimOpenUI(UIType.Loading);
-        IProgress<int> loadingProgress = loadingUI as IProgress<int>;
+		if (isPlaying)
+		{
+			//ÇÁ·¹ÀÓ »çÀÌ¿¡ ¸î ÃÊ°¡ Áö³µÀ»±î?
+			float deltaTime = Time.deltaTime;
+			//¸Å´ÏÀú°¡ ¾÷µ¥ÀÌÆ® ÇÏ´Â °æ¿ì
+			OnUpdateManager?.Invoke(deltaTime);
+			//ÄÁÆ®·Ñ·¯¸¦ ¾÷µ¥ÀÌÆ®ÇÑ´Ù => ¸ÕÀú ÆÇ´ÜÇÏ°í
+			OnUpdateController?.Invoke(deltaTime);
+			//Ä³¸¯ÅÍ¸¦ ¾÷µ¥ÀÌÆ®ÇÑ´Ù => Ä³¸¯ÅÍ°¡ ¼öÇàÇÏ°í
+			OnUpdateCharacter?.Invoke(deltaTime);
+			//¿ÀºêÁ§Æ®¸¦ ¾÷µ¥ÀÌÆ®ÇÑ´Ù => ¿ÀºêÁ§Æ® ÁøÇà
+			OnUpdateObject?.Invoke(deltaTime);
+		}
 
-        loadingProgress?.Set(0, totalLoadCount);
-        yield return _data.Connect(this);
-        loadingProgress?.AddCurrent(1);
-        yield return _objectM.Connect(this);
-        loadingProgress?.AddCurrent(1);
-        yield return _save.Connect(this);
-        loadingProgress?.AddCurrent(1);
-        yield return _setting.Connect(this);
-        loadingProgress?.AddCurrent(1);
-        yield return _language.Connect(this);
-        loadingProgress?.AddCurrent(1);
-        yield return _audio.Connect(this);
-        loadingProgress?.AddCurrent(1);
-        yield return _camera.Connect(this);
-        loadingProgress?.AddCurrent(1);
-        yield return _input.Connect(this);
-        loadingProgress?.AddCurrent(1);
-        yield return new WaitForSeconds(1.0f);
-        UIManager.ClaimCloseUI(UIType.Loading);
-        isLoading = false;
-        /* ë…¸ê°€ë‹¤í•˜ë©´ ì´ë ‡ê²Œë¨
-        if (_ui == null)
-        {
-            _ui= gameObject.AddComponent<UIManager>();
-            _ui.Connect(this);
-        }
-        if (_data == null)
-        {   
-            _data = gameObject.AddComponent<DataManager>();
-            _data.Connect(this);
-        }
-        if (_save == null)
-        {   
-            _save = gameObject.AddComponent<SaveManager>();
-            _save.Connect(this);
-        }
-        if (_setting == null)
-        {    
-            _setting = gameObject.AddComponent<SettingManager>();
-            _setting.Connect(this);
-        }
-        if (_language == null)
-        {    
-            _language = gameObject.AddComponent<LanguageManager>();
-            _language.Connect(this);
-        }
-        if (_audio == null)
-        {    
-            _audio = gameObject.AddComponent<AudioManager>();
-            _audio.Connect(this);
-        }
-        if (_camera == null)
-        {    
-            _camera = gameObject.AddComponent<CameraManager>();
-            _camera.Connect(this);
-        }
-        if (_input == null)
-        {    
-            _input = gameObject.AddComponent<InputManager>();
-            _input.Connect(this);
-        }*/
-
-    }
-    void DeleteManagers()
-    {
-        //ìœ ì €ì…ë ¥
-        Input?.Disconnect();
-        //ì˜¤ë¸Œì íŠ¸
-        ObjectM?.Disconnect();
-        //ì˜¤ë””ì˜¤
-        Audio?.Disconnect();
-        //ì–¸ì–´
-        Language?.Disconnect();
-        //ì„¸íŒ…
-        Setting?.Disconnect();
-        //ì„¸ì´ë¸Œ
-        Save?.Disconnect();
-        //ì¹´ë©”ë¼
-        Camera?.Disconnect();
-        //ui
-        UI.Disconnect();
-        //ë°ì´í„°íŒŒì¼
-        Data?.Disconnect();
-    }
-    ManagerType CreateManager<ManagerType>(ref ManagerType targetVariable) where ManagerType : ManagerBase
-    {
-        if (targetVariable == null)
-        {
-            targetVariable = this.TryAddComponent<ManagerType>();
-        }
-        return targetVariable;
-
-    }
-    public static void Pause()
-    {
-        Instance.isPlaying = false;
-    }
-    public static void Unpause()
-    {
-        Instance.isPlaying = true;
-    }
-
-    public void InvokeInitializeEvent(ref InitializeEvent OriginEvent)
-    {
-        if (OriginEvent != null)
-        {
-            InitializeEvent currentEvent = OriginEvent;
-            OriginEvent = null;
-            currentEvent.Invoke();
-        }
-    }
-    public void InvokeDestroyEvent(ref DestroyEvent OriginEvent)
-    {
-        if (OriginEvent != null)
-        {
-            DestroyEvent currentEvent = OriginEvent;
-            OriginEvent = null;
-            currentEvent.Invoke();
-        }
-    }
-    
-    void Update()
-    {
-        if (isLoading) return;
-
-        //ë§¤ë‹ˆì €ë¥¼ ì´ˆê¸°í™”
-        InvokeInitializeEvent(ref OnInitializeManager);
-        //ìºë¦­í„°ë¥¼ ì´ˆê¸°í™”
-        InvokeInitializeEvent(ref OnInitializeCharacter);
-        //ì»¨íŠ¸ë¡¤ëŸ¬ë¥¼ ì´ˆê¸°í™”
-        InvokeInitializeEvent(ref OnInitializeController);
-        //ì˜¤ë¸Œì íŠ¸ë¥¼ ì´ˆê¸°í™”
-        InvokeInitializeEvent(ref OnInitializeObject);
-
-        if (isPlaying)
-        {
-            //í”„ë ˆì„ ì‚¬ì´ì— ëª‡ì´ˆê°€ ì§€ë‚¬ëŠ”ì§€
-            float deltaTime=Time.deltaTime;
-            //ë§¤ë‹ˆì €ê°€ ì—…í…Œì´íŠ¸í•˜ëŠ” ê²½ìš°
-            OnUpdateManager?.Invoke(deltaTime);
-            //ì»¨íŠ¸ë¡¤ëŸ¬ë¥¼ ì—…ë°ì´íŠ¸í•œë‹¤
-            OnUpdateController?.Invoke(deltaTime);
-            //ìºë¦­í„°ë¥¼ ì—…ë°ì´íŠ¸í•œë‹¤
-            OnUpdateCharacter?.Invoke(deltaTime);
-            //ì˜¤ë¸Œì íŠ¸ë¥¼ ì—…ë°ì´íŠ¸í•œë‹¤
-            OnUpdateObject?.Invoke(deltaTime);
-        }
-
-        //ì˜¤ë¸Œì íŠ¸ë¥¼ ì œê±°
-        InvokeDestroyEvent(ref OnDestroyObject);
-        //ì»¨íŠ¸ë¡¤ëŸ¬ë¥¼ ì œê±°
-        InvokeDestroyEvent(ref OnDestroyController);
-        //ìºë¦­í„°ë¥¼ ì œê±°
-        InvokeDestroyEvent(ref OnDestroyCharacter);
-        //ë§¤ë‹ˆì €ë¥¼ ì œê±°
-        InvokeDestroyEvent(ref OnDestroyManager);
-    }
+		//¿ÀºêÁ§Æ®¸¦ Á¦°ÅÇÑ´Ù
+		InvokeDestroyEvent(ref OnDestroyObject);
+		//ÄÁÆ®·Ñ·¯¸¦ Á¦°ÅÇÑ´Ù
+		InvokeDestroyEvent(ref OnDestroyController);
+		//Ä³¸¯ÅÍ¸¦ Á¦°ÅÇÑ´Ù
+		InvokeDestroyEvent(ref OnDestroyCharacter);
+		//¸Å´ÏÀú¸¦ Á¦°ÅÇÑ´Ù
+		InvokeDestroyEvent(ref OnDestroyManager);
+	}
 }
